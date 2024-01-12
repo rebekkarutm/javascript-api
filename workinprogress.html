@@ -1,0 +1,313 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>My Fruit Game</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body
+        {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+    let config =
+    {
+        type: Phaser.AUTO,
+        width: 800,
+        height: 600,
+        //adding the Arcade Physics system
+        physics:
+        {
+            default: 'arcade',
+            arcade:
+            {
+                gravity: { y: 300 },
+                debug: false
+            }
+        },
+        scene:
+        {
+            preload: preload,
+            create: create,
+            update: update
+        }
+    };
+
+    let player;
+    let apples;
+    let bananas;
+    let straberries;
+    let wolves;
+    let platforms;
+    let cursors;
+    let score = 0;
+    let scoreText;
+    let gameOver = false;
+    let gameOverText;
+
+    let game = new Phaser.Game(config);
+
+    function preload ()
+    {
+        //assets to be used in the game
+        this.load.image('sky', 'assets/sky.png');
+        this.load.image('ground', 'assets/platform.png');
+        this.load.image('apple', 'assets/apple.png');
+        this.load.image('banana', 'assets/banana.png');
+        this.load.image('strawberry', 'assets/strawberry.png');
+        this.load.spritesheet('wolf', 'assets/wolf.png',
+        {frameWidth: 61.09, frameHeight: 48}
+        );
+        this.load.spritesheet('sheep', 'assets/sheepSprite.png',
+        { frameWidth: 57, frameHeight: 48 }
+        );
+    }
+
+    function create ()
+    {
+        //adding the blue sky background
+        this.add.image(400, 300, 'sky');
+
+        //calling to the Arcade Physics system, creating the group that contains the ground and the ledges
+        platforms = this.physics.add.staticGroup();
+       
+        //creating the sprite (player)
+        player = this.physics.add.sprite(100, 450, 'sheep').setDamping(0.95);
+
+        //make the player bounce a little bit
+        player.setBounce(0.2);
+        player.setCollideWorldBounds(true);
+
+        this.anims.create
+        ({
+            key: 'left',
+            //when walking left, it uses frames 0, 1, and 2 of the sprite
+            frames: this.anims.generateFrameNumbers('sheep', { start: 0, end: 2}),
+            //runs at 10 frames per second
+            frameRate: 10,
+            //the repeat tells the animation to loop
+            repeat: -1
+        });
+
+        this.anims.create
+        ({
+            key: 'turn',
+            //using frame 4 when turning
+            frames: [ { key: 'sheep', frame: 3 } ],
+            frameRate: 20
+        });
+
+        this.anims.create
+        ({
+            //same as when walking left except different frames
+            key: 'right',
+            frames: this.anims.generateFrameNumbers('sheep', { start: 4, end: 6}),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        cursors = this.input.keyboard.createCursorKeys();
+
+        //adding fruit
+        apples = this.add.group
+        ({
+            key: 'apple',
+            //positioning each apple 260px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        apples = this.add.group
+        ({
+            key: 'apple',
+            //positioning each apple 260px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        apples = this.add.group
+        ({
+            key: 'apple',
+            //positioning each apple 260px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        bananas = this.add.group
+        ({
+            key: 'banana',
+            //positioning each banana 200px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        bananas = this.add.group
+        ({
+            key: 'banana',
+            //positioning each banana 200px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        bananas = this.add.group
+        ({
+            key: 'banana',
+            //positioning each banana 200px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        strawberries = this.add.group
+        ({
+            key: 'strawberry',
+            //positioning each strawberry 170px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        strawberries = this.add.group
+        ({
+            key: 'strawberry',
+            //positioning each strawberry 170px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590) }
+        });
+
+        strawberries = this.add.group
+        ({
+            key: 'strawberry',
+            //positioning each strawberry 170px apart
+            setXY: { x: Phaser.Math.RND.between(10, 790), y: Phaser.Math.RND.between(10, 590)}
+        });
+
+        //adding wolves
+        wolves = this.physics.add.group();
+
+        //adding the score, positioning and styling the text
+        scoreText = this.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000'});
+
+        //making the player land on the platforms
+        this.physics.add.collider(player, platforms);
+        //let the fruit collide against platforms
+        this.physics.add.collider(apples, platforms);
+        this.physics.add.collider(bananas, platforms);
+        this.physics.add.collider(strawberries, platforms);
+        //let the wolves collide with the platforms
+        this.physics.add.collider(wolves, platforms);
+
+        //checking to see if the player overlaps with a fruit, if they do, the collect(fruit) function happens
+        this.physics.add.overlap(player, apples, collectApple, null, this);
+        this.physics.add.overlap(player, bananas, collectBanana, null, this);
+        this.physics.add.overlap(player, strawberries, collectStrawberry, null, this);
+
+        //check if the player collides with a wolf, if they do, the hitWolf function happens
+        this.physics.add.collider(player, wolves, hitWolf, null, this);
+
+        //startText = this.add.text(130, 300, 'Collect as many stars as you can!', {fontSize: '28px', fill: '#000'});
+    }
+
+    function update ()
+    {
+        //if the gameOver function is activated, the text is displayed and the function is returned, so there is no more moving
+        if (gameOver)
+        {
+            gameOverText = this.add.text(250, 300, 'Game Over', {fontSize: '56px', fill: '#000'});
+            return;
+        }
+
+        //if left key is being held down, negative horizontal velocity (move left) + play 'left' running animation
+        if (cursors.left.isDown) {
+            player.setVelocityX(-160);
+            player.anims.play('left', true);
+        }
+
+        //same but for the right key
+        else if (cursors.right.isDown)
+        {
+            player.setVelocityX(160);
+            player.anims.play('right', true);
+        }
+
+        //setting neutral/front facing if no key is down
+        else
+        {
+            player.setVelocityX(0);
+            player.anims.play('turn');
+        }
+
+        //if pressing up key and the player is touching the ground (so it can't jump whilst in the air)
+        if (cursors.up.isDown && player.body.touching.down)
+        {
+            player.setVelocityY(-330);
+        }
+    }
+
+    //if an apple touches the player, it disappears and adds +10 to your score
+    function collectApple (player, apple)
+    {
+        apple.disableBody(true, true);
+
+        score += 10;
+        scoreText.setText('Score: ' + score);
+
+        //see how many apples are left, if none are left, iterate function to reset all the apples (adding more to collect)
+        if (apples.countActive(true) === 0)
+        {
+            apples.children.iterate(function (child) {
+                child.enableBody(true, child.x, 0, true, true);
+            });
+
+            //wolf placed on the opposite side of screen from the player at a random x position
+            let x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+
+            let wolf = wolves.create(x, 16, 'wolf');
+            wolf.setBounce(1);
+            wolf.setCollideWorldBounds(true);
+            wolf.setVelocity(Phaser.Math.Between(-200, 200), 10);
+            wolf.allowGravity = false;
+        }
+    }
+
+    //if a banana touches the player, it disappears and adds +10 to your score
+    function collectBanana (player, banana)
+    {
+        banana.disableBody(true, true);
+
+        score += 10;
+        scoreText.setText('Score: ' + score);
+
+        //see how many bananas are left, if none are left, iterate function to reset all the bananas (adding more to collect)
+        if (bananas.countActive(true) === 0)
+        {
+            bananas.children.iterate(function (child) {
+                child.enableBody(true, child.x, 0, true, true);
+            });
+        }
+    }
+
+    //if a strawberry touches the player, it disappears and adds +10 to your score
+    function collectStrawberry (player, strawberry)
+    {
+        strawberry.disableBody(true, true);
+
+        score += 10;
+        scoreText.setText('Score: ' + score);
+
+        //see how many strawberries are left, if none are left, iterate function to reset all the strawberries (adding more to collect)
+        if (strawberries.countActive(true) === 0)
+        {
+            strawberries.children.iterate(function (child) {
+                child.enableBody(true, child.x, 0, true, true);
+            });
+        }
+    }
+    //if the wolf catches the sheep it's game over
+    function hitWolf (player, wolf)
+    {
+        this.physics.pause();
+        player.setTint(0xff0000);
+        player.anims.play('turn');
+        gameOver = true;
+    }
+
+</script>
+
+</body>
+</html>
